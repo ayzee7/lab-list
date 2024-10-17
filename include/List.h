@@ -1,74 +1,108 @@
 #include <iostream>
 
 template <class T>
+class List;
+
+template <class T>
 class Node {
+protected:
 	Node* next;
-	T value;
+	
 public:
+	T value;
 	Node(T value, Node* next) : value(value), next(next) {}
-	Node* next() {
-		return next;
-	}
-	T value() {
-		return value;
-	}
+
+	friend class List<T>;
 };
 
 template <class T>
 class List {
 	Node<T>* first = nullptr;
-	size_t size = 0;
+	size_t sz = 0;
+
 public:
 	List(size_t n = 0) {
+		if (n > INT_MAX) {
+			throw "Invalid list size";
+		}
 		while (n--) {
-			Node<T>* tmp = new Node(T(), first);
+			Node<T>* tmp = new Node<T>(T(), first);
 			first = tmp;
-			size++;
+			sz++;
 		}
 	}
 
 	~List() {
-		size = 0;
+		sz = 0;
 		Node<T>* curr;
 		while (first != nullptr) {
-			curr = first->next();
+			curr = first->next;
 			delete first;
 			first = curr;
 		}
 	}
 
-	List(const List& other): size(other.size) {
+	List(const List& other): sz(other.sz) {
 		if (other.first != nullptr) {
 			Node<T>* curr1 = other.first;
-			Node<T>* curr2 = new Node<T>(curr1->value(), nullptr);
+			Node<T>* curr2 = new Node<T>(curr1->value, nullptr);
 			first = curr2;
-			while (!curr1) {
-				Node<T>* next1 = curr1->next();
-				if (!next1) {
+			while (curr1 != nullptr) {
+				Node<T>* next1 = curr1->next;
+				if (next1 == nullptr) {
 					break;
 				}
-				curr2->next() = new Node<T>(next1->value(), nullptr);
-				curr2 = curr2->next();
-				curr1 = curr1->next();
+				curr2->next = new Node<T>(next1->value, nullptr);
+				curr2 = curr2->next;
+				curr1 = curr1->next;
 			}
 		}
 	}
 
+	struct Iterator {
+		Iterator(Node<T>* pointer) : ptr(pointer) {}
+
+		Node<T>& operator*() const { return *ptr; }
+		Node<T>* operator->() { return ptr; }
+
+		Iterator& operator++() { 
+			ptr = ptr->next;
+			return *this; 
+		}
+
+		Iterator operator++(int) {
+			Iterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+
+		Iterator next() {
+			return ptr->next;
+		}
+
+		friend bool operator== (const Iterator& a, const Iterator& b) { return a.ptr == b.ptr; };
+		friend bool operator!= (const Iterator& a, const Iterator& b) { return a.ptr != b.ptr; };
+
+	private:
+		Node<T>* ptr;
+	};
+
+	Iterator begin() { return Iterator(first); }
+	Iterator end() { return Iterator(nullptr); }
+
 	void print() {
-		Node<T>* tmp = first;
-		std::cout << "\"";
-		while (!tmp) {
-			std::cout << tmp->value();
-			tmp = tmp->next();
-			if (tmp != nullptr) {
+		std::cout << "(";
+		for (Iterator i = this->begin();  i != this->end(); ++i) {
+			std::cout << i->value;
+			if (i.next() != this->end()) {
 				std::cout << ", ";
 			}
 		}
-		std::cout << "\"" << std::endl;
+		std::cout << ")" << std::endl;
 	}
 
 	size_t size() const {
-		return size;
+		return sz;
 	}
 
 	List(List&& other) {
@@ -76,30 +110,46 @@ public:
 		other.first = nullptr;
 	}
 
-	Node<T>& operator[](int i) {
-		Node<T>* it = first;
-		while (i--) {
-			it = it->next();
-		}
+	Node<T>& operator[](size_t ind) {
+		Iterator it = this->begin();
+		for (size_t i = 0; i < ind; ++i, ++it);
 		return *it;
 	}
 
 	Node<T>* insert_after(T data, Node<T>* prev) {
+		if (prev == nullptr) {
+			throw "Invalid node pointer";
+		}
 		Node<T>* tmp = new Node<T>(data, nullptr);
-		tmp->next() = prev->next();
-		prev->next() = tmp;
+		tmp->next = prev->next;
+		prev->next = tmp;
+		sz++;
 		return tmp;
 	}
 
 	Node<T>* insert_front(T data) {
+		sz++;
 		return (first = new Node<T>(data, first));
 	}
 
 	Node<T>* erase_after(Node<T>* prev) {
-		Node<T>* tmp = prev->next();
+		if (prev == nullptr) {
+			throw "Invalid node pointer";
+		}
+		Node<T>* tmp = prev->next;
 		if (tmp) {
-			prev->next() = prev->next()->next();
+			sz--;
+			prev->next = prev->next->next;
 			delete tmp;
 		}
+	}
+
+	void erase_front() {
+		sz--;
+		first = first->next;
+	}
+
+	Node<T>* GetHead() {
+		return first;
 	}
 };

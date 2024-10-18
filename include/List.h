@@ -105,7 +105,7 @@ public:
 		return sz;
 	}
 
-	List(List&& other) {
+	List(List&& other) noexcept {
 		first = other.first;
 		other.first = nullptr;
 	}
@@ -137,19 +137,33 @@ public:
 			throw "Invalid node pointer";
 		}
 		Node<T>* tmp = prev->next;
+		Node<T>* tmp_copy(tmp);
 		if (tmp) {
 			sz--;
 			prev->next = prev->next->next;
 			delete tmp;
 		}
+		return tmp_copy;
 	}
 
-	void erase_front() {
+	Node<T>* erase_front() {
 		sz--;
+		Node<T>* front_copy = first;
 		first = first->next;
+		return front_copy;
 	}
 
 	Node<T>* GetHead() {
 		return first;
+	}
+
+	Iterator find(T val) {
+		for (auto& node : *this) {
+			if (node.value == val) {
+				return Iterator(&node);
+				break;
+			}
+		}
+		return this->end();
 	}
 };

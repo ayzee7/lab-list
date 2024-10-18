@@ -104,6 +104,11 @@ TEST(list, can_insert_node) {
 	ASSERT_EQ(l[3].value, 1);
 }
 
+TEST(list, insert_returns_inserted_node) {
+	List<int> l(7);
+	ASSERT_NE(l.insert_after(1, &l[2]), nullptr);
+}
+
 TEST(list, can_insert_node_using_iterator) {
 	List<int> l(7);
 	l.insert_after(1, &(*l.begin()));
@@ -121,10 +126,15 @@ TEST(list, insert_changes_list_size) {
 	ASSERT_EQ(l.size(), 8);
 }
 
-TEST(list, can_insert_in_front) {
+TEST(list, can_insert_front) {
 	List<int> l(7);
 	l.insert_front(1);
 	ASSERT_EQ((*l.begin()).value, 1);
+}
+
+TEST(list, insert_front_returns_inserted_node) {
+	List<int> l(7);
+	ASSERT_NE(l.insert_front(1), nullptr);
 }
 
 TEST(list, insert_in_front_changes_list_size) {
@@ -138,6 +148,12 @@ TEST(list, can_erase_node) {
 	auto erased_ptr = &l[3];
 	l.erase_after(&l[2]);
 	ASSERT_NE(&l[3], erased_ptr);
+}
+
+TEST(list, erase_returns_erased_node) {
+	List<int> l(7);
+	auto erased_ptr = &l[3];
+	ASSERT_EQ(l.erase_after(&l[2]), erased_ptr);
 }
 
 TEST(list, erase_changes_list_size) {
@@ -159,8 +175,25 @@ TEST(list, can_erase_front) {
 	ASSERT_NE(&(*l.begin()), erased_front);
 }
 
+TEST(list, erase_front_returns_erased_node) {
+	List<int> l(7);
+	auto erased_front = &(*l.begin());
+	ASSERT_EQ(l.erase_front(), erased_front);
+}
+
 TEST(list, erase_front_changes_list_size) {
 	List<int> l(7);
 	l.erase_front();
 	ASSERT_EQ(l.size(), 6);
+}
+
+TEST(list, can_find_node) {
+	List<int> l(7);
+	l.insert_front(1);
+	ASSERT_NE(l.find(1), nullptr);
+}
+
+TEST(list, cant_find_non_existing_node) {
+	List<int> l(7);
+	ASSERT_EQ(l.find(1), nullptr);
 }

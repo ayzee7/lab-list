@@ -1,28 +1,28 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
+
+option(BUILD_SAMPLES ON)
 
 set(PROJECT_NAME list)
 project(${PROJECT_NAME})
 
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+include(CTest)
+enable_testing()  # defines BUILD_TESTING
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE})
-
-set(MP2_LIBRARY "${PROJECT_NAME}")
 set(MP2_TESTS   "test_${PROJECT_NAME}")
+set(MP2_CUSTOM_PROJECT "${PROJECT_NAME}")
 set(MP2_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-include_directories("${MP2_INCLUDE}" gtest)
+add_subdirectory(include)
 
-# BUILD
-add_subdirectory(src)
-add_subdirectory(gtest)
-add_subdirectory(test)
+if(BUILD_SAMPLES)
+	add_subdirectory(samples)
+endif()
+
+if(BUILD_TESTING)
+    add_subdirectory(gtest)
+	add_subdirectory(test)
+endif()
+
 
 # REPORT
 message( STATUS "")

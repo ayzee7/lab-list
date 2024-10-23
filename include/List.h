@@ -1,6 +1,6 @@
 #include <iostream>
 
-template <class T>
+/*template <class T>
 class List;
 
 template <class T>
@@ -13,10 +13,18 @@ public:
 	Node(T value, Node* next) : value(value), next(next) {}
 
 	friend class List<T>;
-};
+};*/
 
 template <class T>
 class List {
+
+	template <class T>
+	struct Node {
+		Node* next;
+		T val;
+		Node(T value, Node* next) : val(value), next(next) {}
+	};
+
 	Node<T>* first = nullptr;
 	size_t sz = 0;
 
@@ -45,14 +53,14 @@ public:
 	List(const List& other): sz(other.sz) {
 		if (other.first != nullptr) {
 			Node<T>* curr1 = other.first;
-			Node<T>* curr2 = new Node<T>(curr1->value, nullptr);
+			Node<T>* curr2 = new Node<T>(curr1->val, nullptr);
 			first = curr2;
 			while (curr1 != nullptr) {
 				Node<T>* next1 = curr1->next;
 				if (next1 == nullptr) {
 					break;
 				}
-				curr2->next = new Node<T>(next1->value, nullptr);
+				curr2->next = new Node<T>(next1->val, nullptr);
 				curr2 = curr2->next;
 				curr1 = curr1->next;
 			}
@@ -80,6 +88,8 @@ public:
 			return ptr->next;
 		}
 
+		T value() { return ptr->val; }
+
 		friend bool operator== (const Iterator& a, const Iterator& b) { return a.ptr == b.ptr; };
 		friend bool operator!= (const Iterator& a, const Iterator& b) { return a.ptr != b.ptr; };
 
@@ -93,7 +103,7 @@ public:
 	void print() {
 		std::cout << "(";
 		for (Iterator i = this->begin();  i != this->end(); ++i) {
-			std::cout << i->value;
+			std::cout << i.value();
 			if (i.next() != this->end()) {
 				std::cout << ", ";
 			}
@@ -110,30 +120,31 @@ public:
 		other.first = nullptr;
 	}
 
-	Node<T>& operator[](size_t ind) {
+	Iterator& operator[](size_t ind) {
 		Iterator it = this->begin();
 		for (size_t i = 0; i < ind; ++i, ++it);
-		return *it;
+		return it;
 	}
 
-	Node<T>* insert_after(T data, Node<T>* prev) {
-		if (prev == nullptr) {
+	Iterator insert_after(T data, Iterator prev) {
+		if (&(*prev) == nullptr) {
 			throw "Invalid node pointer";
 		}
 		Node<T>* tmp = new Node<T>(data, nullptr);
 		tmp->next = prev->next;
 		prev->next = tmp;
 		sz++;
-		return tmp;
+		return Iterator(tmp);
 	}
 
-	Node<T>* insert_front(T data) {
+	Iterator insert_front(T data) {
 		sz++;
-		return (first = new Node<T>(data, first));
+		first = new Node<T>(data, first);
+		return Iterator(first);
 	}
 
-	Node<T>* erase_after(Node<T>* prev) {
-		if (prev == nullptr) {
+	Iterator erase_after(Iterator prev) {
+		if (&(*prev) == nullptr) {
 			throw "Invalid node pointer";
 		}
 		Node<T>* tmp = prev->next;
@@ -143,25 +154,20 @@ public:
 			prev->next = prev->next->next;
 			delete tmp;
 		}
-		return tmp_copy;
+		return Iterator(tmp_copy);
 	}
 
-	Node<T>* erase_front() {
+	Iterator erase_front() {
 		sz--;
 		Node<T>* front_copy = first;
 		first = first->next;
-		return front_copy;
-	}
-
-	Node<T>* GetHead() {
-		return first;
+		return Iterator(front_copy);
 	}
 
 	Iterator find(T val) {
-		for (auto& node : *this) {
-			if (node.value == val) {
-				return Iterator(&node);
-				break;
+		for (Iterator it = this->begin(); it != this->end(); ++it) {
+			if (it.value() == val) {
+				return it;
 			}
 		}
 		return this->end();
